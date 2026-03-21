@@ -4,99 +4,127 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     
-    <script src="https://telegram.org/js/telegram-web-app.js?v=1.1"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <style>
-        /* Hardcoding some colors as backup in case Telegram's "Auto-Theme" fails */
         :root {
-            --bg-color: var(--tg-theme-bg-color, #1c1c1d);
+            /* Fallback to Peakform Orange and Dark Gray if Telegram theme fails */
+            --bg-color: var(--tg-theme-bg-color, #121212);
             --text-color: var(--tg-theme-text-color, #ffffff);
-            --btn-color: var(--tg-theme-button-color, #2481cc);
+            --accent-color: #ff5722; /* Peakform Orange */
+            --card-bg: var(--tg-theme-secondary-bg-color, #1e1e1e);
             --btn-text: var(--tg-theme-button-text-color, #ffffff);
-            --hint-color: #999999;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 20px;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .logo-area {
+        .header {
             margin-bottom: 30px;
-            padding-top: 10px;
         }
 
         .logo-text {
             font-size: 32px;
-            font-weight: bold;
+            font-weight: 900;
             letter-spacing: 2px;
-            color: var(--btn-color);
+            color: var(--accent-color);
+            text-transform: uppercase;
         }
 
         .product-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
+            background: var(--card-bg);
+            border-radius: 16px;
             padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 87, 34, 0.1);
         }
 
         .price {
-            font-size: 22px;
-            color: var(--btn-color);
-            font-weight: bold;
+            font-size: 24px;
+            color: var(--accent-color);
+            font-weight: 800;
             display: block;
-            margin: 10px 0;
+            margin: 12px 0;
         }
 
         button {
-            background-color: var(--btn-color);
-            color: var(--btn-text);
+            background-color: var(--accent-color);
+            color: white;
             border: none;
-            padding: 15px;
+            padding: 16px;
             width: 100%;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: bold;
             font-size: 16px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
 
-    <div class="logo-area">
+    <div class="header">
         <div class="logo-text">PEAKFORM</div>
-        <div style="color: var(--hint-color); font-size: 12px;">Premium Supplements Ethiopia</div>
+        <div style="color: #999; font-size: 12px; margin-top: 5px;">OFFICIAL USN DISTRIBUTOR</div>
     </div>
 
     <div class="product-card">
-        <div style="font-size: 18px; font-weight: bold;">USN Hyperbolic Mass</div>
+        <div style="font-size: 20px; font-weight: bold;">USN Hyperbolic Mass</div>
+        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">Premium All-In-One Gainer</div>
         <span class="price">12,000 ETB</span>
-        <button onclick="buy('Hyperbolic Mass', 12000)">Add to Cart</button>
+        <button onclick="addToCart('Hyperbolic Mass', 12000)">Buy Now</button>
     </div>
 
     <div class="product-card">
-        <div style="font-size: 18px; font-weight: bold;">USN Blue Lab Whey</div>
+        <div style="font-size: 20px; font-weight: bold;">USN Blue Lab Whey</div>
+        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">100% Whey Protein Isolate Blend</div>
         <span class="price">5,800 ETB</span>
-        <button onclick="buy('Blue Lab Whey', 5800)">Add to Cart</button>
+        <button onclick="addToCart('Blue Lab Whey', 5800)">Buy Now</button>
     </div>
 
     <script>
-        // Very important: Initialize the app
-        const webapp = window.Telegram.WebApp;
-        webapp.ready(); // Tells Telegram the app is loaded
-        webapp.expand(); // Makes it full screen
+        const tg = window.Telegram.WebApp;
+        
+        // Force immediate initialization
+        tg.ready();
+        tg.expand();
 
-        function buy(item, price) {
-            webapp.MainButton.text = "Pay " + price + " ETB for " + item;
-            webapp.MainButton.show();
+        function addToCart(item, price) {
+            // Vibrate phone for "Native" feel
+            tg.HapticFeedback.impactOccurred('medium');
             
-            webapp.MainButton.onClick(function() {
-                webapp.showAlert("Redirecting to Chapa for " + item);
-                // Later we will put the real link here
+            // Set the big bottom button
+            tg.MainButton.text = `PROCEED TO CHECKOUT (${price} ETB)`;
+            tg.MainButton.textColor = "#FFFFFF";
+            tg.MainButton.color = "#ff5722";
+            tg.MainButton.show();
+            
+            tg.MainButton.onClick(function() {
+                // This is where you will paste your Chapa link later
+                tg.showPopup({
+                    title: 'Peakform Checkout',
+                    message: `Would you like to pay ${price} ETB for ${item} via Chapa?`,
+                    buttons: [
+                        {id: 'pay', type: 'default', text: 'Yes, Pay Now'},
+                        {type: 'cancel'}
+                    ]
+                });
             });
         }
     </script>
