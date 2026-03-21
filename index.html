@@ -77,56 +77,5 @@
         }
     </style>
 </head>
-<body>
-
-    <div class="header">
-        <div class="logo-text">PEAKFORM</div>
-        <div style="color: #999; font-size: 12px; margin-top: 5px;">OFFICIAL USN DISTRIBUTOR</div>
-    </div>
-
-    <div class="product-card">
-        <div style="font-size: 20px; font-weight: bold;">USN Hyperbolic Mass</div>
-        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">Premium All-In-One Gainer</div>
-        <span class="price">12,000 ETB</span>
-        <button onclick="addToCart('Hyperbolic Mass', 12000)">Buy Now</button>
-    </div>
-
-    <div class="product-card">
-        <div style="font-size: 20px; font-weight: bold;">USN Blue Lab Whey</div>
-        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">100% Whey Protein Isolate Blend</div>
-        <span class="price">5,800 ETB</span>
-        <button onclick="addToCart('Blue Lab Whey', 5800)">Buy Now</button>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        
-        // Force immediate initialization
-        tg.ready();
-        tg.expand();
-
-        function addToCart(item, price) {
-            // Vibrate phone for "Native" feel
-            tg.HapticFeedback.impactOccurred('medium');
-            
-            // Set the big bottom button
-            tg.MainButton.text = `PROCEED TO CHECKOUT (${price} ETB)`;
-            tg.MainButton.textColor = "#FFFFFF";
-            tg.MainButton.color = "#ff5722";
-            tg.MainButton.show();
-            
-            tg.MainButton.onClick(function() {
-                // This is where you will paste your Chapa link later
-                tg.showPopup({
-                    title: 'Peakform Checkout',
-                    message: `Would you like to pay ${price} ETB for ${item} via Chapa?`,
-                    buttons: [
-                        {id: 'pay', type: 'default', text: 'Yes, Pay Now'},
-                        {type: 'cancel'}
-                    ]
-                });
-            });
-        }
-    </script>
-</body>
+6009544944973.png
 </html>
