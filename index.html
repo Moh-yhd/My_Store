@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peakform Nutrition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-link: var(--tg-theme-link-color, #2481cc);
+            --tg-button: var(--tg-theme-button-color, #3390ec);
+            --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--tg-button);
+        }
+
+        .product-card {
+            background-color: var(--tg-bg);
+            border: 1px solid var(--tg-hint);
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .product-title {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .product-price {
+            font-weight: bold;
+            color: var(--tg-link);
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .btn-buy {
+            background-color: var(--tg-button);
+            color: var(--tg-button-text);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">Peakform</div>
+        <p style="color: var(--tg-hint);">Premium Sports Nutrition</p>
+    </div>
+
+    <div class="product-card">
+        <div class="product-image">
+            [Supplement Image]
+        </div>
+        <div class="product-title">USN Whey Protein</div>
+        <div class="product-price">4,500 ETB</div>
+        <button class="btn-buy" onclick="handleBuy()">Add to Cart</button>
+    </div>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Opens the app to full height
+
+        function handleBuy() {
+            // Show the native Telegram Main Button
+            tg.MainButton.text = "Proceed to Checkout (Chapa)";
+            tg.MainButton.show();
+            
+            tg.MainButton.onClick(() => {
+                tg.showPopup({
+                    title: 'Payment',
+                    message: 'Redirecting to Chapa for secure Birr payment...',
+                    buttons: [{type: 'ok'}]
+                });
+            });
+        }
+    </script>
+</body>
+</html>
