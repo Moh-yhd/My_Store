@@ -77,5 +77,55 @@
         }
     </style>
 </head>
-6009544944973.png
+<body>
+
+    <div class="header">
+        <div class="logo-text">PEAKFORM</div>
+        <div style="color: #999; font-size: 12px; margin-top: 5px;">OFFICIAL USN DISTRIBUTOR</div>
+    </div>
+
+    <div class="product-card">
+        <img src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png" 
+             style="width:100%; border-radius:12px; margin-bottom:15px; background: white;" 
+             alt="USN Hyperbolic Mass">
+             
+        <div style="font-size: 20px; font-weight: bold;">USN Hyperbolic Mass</div>
+        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">Premium All-In-One Gainer</div>
+        <span class="price">12,000 ETB</span>
+        <button onclick="addToCart('Hyperbolic Mass', 12000)">Buy Now</button>
+    </div>
+
+    <div class="product-card">
+        <div style="height:150px; background:#222; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:15px; color:#444;">
+            [Upload Whey Image to GitHub]
+        </div>
+        <div style="font-size: 20px; font-weight: bold;">USN Blue Lab Whey</div>
+        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">100% Whey Protein Isolate Blend</div>
+        <span class="price">5,800 ETB</span>
+        <button onclick="addToCart('Blue Lab Whey', 5800)">Buy Now</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        function addToCart(item, price) {
+            tg.HapticFeedback.impactOccurred('medium');
+            tg.MainButton.text = `PROCEED TO CHECKOUT (${price} ETB)`;
+            tg.MainButton.show();
+            
+            tg.MainButton.onClick(function() {
+                tg.showPopup({
+                    title: 'Peakform Checkout',
+                    message: `Would you like to pay ${price} ETB for ${item} via Chapa?`,
+                    buttons: [
+                        {id: 'pay', type: 'default', text: 'Yes, Pay Now'},
+                        {type: 'cancel'}
+                    ]
+                });
+            });
+        }
+    </script>
+</body>
 </html>
