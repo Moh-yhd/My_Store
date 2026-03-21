@@ -13,6 +13,7 @@
             --tg-link: var(--tg-theme-link-color, #2481cc);
             --tg-button: var(--tg-theme-button-color, #3390ec);
             --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+            --tg-secondary: var(--tg-theme-secondary-bg-color, #f0f0f0);
         }
 
         body {
@@ -32,82 +33,73 @@
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             color: var(--tg-button);
+            margin-bottom: 4px;
+        }
+
+        .sub-header {
+            font-size: 14px;
+            color: var(--tg-hint);
+            margin-top: 0;
+        }
+
+        #product-list {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-width: 400px;
         }
 
         .product-card {
-            background-color: var(--tg-bg);
-            border: 1px solid var(--tg-hint);
-            border-radius: 12px;
+            background-color: var(--tg-secondary);
+            border-radius: 15px;
             padding: 16px;
-            width: 100%;
-            max-width: 300px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.2s;
         }
-<body>
-    <div class="header">
-        <div class="logo">PEAKFORM</div>
-        <p style="color: var(--tg-hint);">Premium Sports Nutrition & Fitness</p>
-    </div>
 
-    <div id="product-list" style="width: 100%; display: grid; grid-template-columns: 1fr; gap: 16px;">
-        
-        <div class="product-card">
-            <div class="product-image">4kg Bag</div> 
-            <div class="product-title">USN Hyperbolic Mass</div>
-            <div class="product-price">12,000 ETB</div>
-            <button class="btn-buy" onclick="handleBuy('USN Hyperbolic Mass', 12000)">Add to Cart</button>
-        </div>
-        
-        <div class="product-card">
-            <div class="product-image">2kg Tub</div>
-            <div class="product-title">USN Blue Lab Whey</div>
-            <div class="product-price">5,800 ETB</div>
-            <button class="btn-buy" onclick="handleBuy('USN Blue Lab Whey', 5800)">Add to Cart</button>
-        </div>
-
-        <div class="product-card">
-            <div class="product-image">500g</div>
-            <div class="product-title">USN Pure Creatine</div>
-            <div class="product-price">2,400 ETB</div>
-            <button class="btn-buy" onclick="handleBuy('USN Pure Creatine', 2400)">Add to Cart</button>
-        </div>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        // Placeholder for your Chapa links
-        const productLinks = {
-            "USN Hyperbolic Mass": "https://chapa.co/pay/TEST-LINK-1",
-            "USN Blue Lab Whey": "https://chapa.co/pay/TEST-LINK-2",
-            "USN Pure Creatine": "https://chapa.co/pay/TEST-LINK-3"
-        };
-
-        function handleBuy(name, price) {
-            tg.MainButton.text = `Pay ${price} ETB for ${name}`;
-            tg.MainButton.show();
-            
-            tg.MainButton.onClick(() => {
-                const payLink = productLinks[name];
-                if (payLink && payLink.includes("TEST-LINK")) {
-                    tg.showPopup({
-                        title: 'Setup Required',
-                        message: 'You need to create a real link in your Chapa dashboard and paste it into the code!',
-                        buttons: [{type: 'ok'}]
-                    });
-                } else if (payLink) {
-                    tg.openLink(payLink);
-                }
-            });
+        .product-image-placeholder {
+            width: 100%;
+            height: 150px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--tg-hint);
+            margin-bottom: 12px;
         }
-    </script>
-</body>
-       
-</html>
+
+        .product-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 10px 0 5px 0;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--tg-link);
+            margin-bottom: 15px;
+        }
+
+        .btn-buy {
+            background-color: var(--tg-button);
+            color: var(--tg-button-text);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-buy:active
