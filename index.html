@@ -49,77 +49,65 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
         }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-        }
-
-        .product-title {
-            font-size: 18px;
-            margin: 8px 0;
-        }
-
-        .product-price {
-            font-weight: bold;
-            color: var(--tg-link);
-            font-size: 20px;
-            margin-bottom: 16px;
-        }
-
-        .btn-buy {
-            background-color: var(--tg-button);
-            color: var(--tg-button-text);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            width: 100%;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
-</head>
 <body>
-
     <div class="header">
-        <div class="logo">Peakform</div>
-        <p style="color: var(--tg-hint);">Premium Sports Nutrition</p>
+        <div class="logo">PEAKFORM</div>
+        <p style="color: var(--tg-hint);">Premium Sports Nutrition & Fitness</p>
     </div>
 
-    <div class="product-card">
-        <div class="product-image">
-            [Supplement Image]
+    <div id="product-list" style="width: 100%; display: grid; grid-template-columns: 1fr; gap: 16px;">
+        
+        <div class="product-card">
+            <div class="product-image">4kg Bag</div> 
+            <div class="product-title">USN Hyperbolic Mass</div>
+            <div class="product-price">12,000 ETB</div>
+            <button class="btn-buy" onclick="handleBuy('USN Hyperbolic Mass', 12000)">Add to Cart</button>
         </div>
-        <div class="product-title">USN Whey Protein</div>
-        <div class="product-price">4,500 ETB</div>
-        <button class="btn-buy" onclick="handleBuy()">Add to Cart</button>
+        
+        <div class="product-card">
+            <div class="product-image">2kg Tub</div>
+            <div class="product-title">USN Blue Lab Whey</div>
+            <div class="product-price">5,800 ETB</div>
+            <button class="btn-buy" onclick="handleBuy('USN Blue Lab Whey', 5800)">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <div class="product-image">500g</div>
+            <div class="product-title">USN Pure Creatine</div>
+            <div class="product-price">2,400 ETB</div>
+            <button class="btn-buy" onclick="handleBuy('USN Pure Creatine', 2400)">Add to Cart</button>
+        </div>
     </div>
 
     <script>
-        // Initialize Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Opens the app to full height
+        tg.expand();
 
-        function handleBuy() {
-            // Show the native Telegram Main Button
-            tg.MainButton.text = "Proceed to Checkout (Chapa)";
+        // Placeholder for your Chapa links
+        const productLinks = {
+            "USN Hyperbolic Mass": "https://chapa.co/pay/TEST-LINK-1",
+            "USN Blue Lab Whey": "https://chapa.co/pay/TEST-LINK-2",
+            "USN Pure Creatine": "https://chapa.co/pay/TEST-LINK-3"
+        };
+
+        function handleBuy(name, price) {
+            tg.MainButton.text = `Pay ${price} ETB for ${name}`;
             tg.MainButton.show();
             
             tg.MainButton.onClick(() => {
-                tg.showPopup({
-                    title: 'Payment',
-                    message: 'Redirecting to Chapa for secure Birr payment...',
-                    buttons: [{type: 'ok'}]
-                });
+                const payLink = productLinks[name];
+                if (payLink && payLink.includes("TEST-LINK")) {
+                    tg.showPopup({
+                        title: 'Setup Required',
+                        message: 'You need to create a real link in your Chapa dashboard and paste it into the code!',
+                        buttons: [{type: 'ok'}]
+                    });
+                } else if (payLink) {
+                    tg.openLink(payLink);
+                }
             });
         }
     </script>
 </body>
+       
 </html>
