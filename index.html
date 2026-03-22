@@ -16,7 +16,7 @@
         .price { font-size: 24px; color: var(--accent); font-weight: 800; display: block; margin: 10px 0; }
         .stock-tag { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
         .btn-buy { background: var(--accent); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
-        .btn-buy:disabled { background: #444; cursor: not-allowed; }
+        .btn-buy:disabled { background: #444; cursor: not-allowed; opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -82,8 +82,10 @@
     tg.ready();
     tg.expand();
 
-    // LINKS TO YOUR GOOGLE INFRASTRUCTURE
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbz8y9pva7X4Mi54y5r4RzzS7PJK4IoVwzEW1P1DVc3PABXfuhr5BlK8KJ0g98Gxk-Pr/exec";
+    // 1. UPDATE THIS URL FROM GOOGLE APPS SCRIPT DEPLOYMENT
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby0ZYxHChhkrdMcIwhpY4n2HGzlvIODA_xzlaI9rQE/exec";
+    
+    // 2. CSV LINK FROM GOOGLE SHEETS
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
     // BACKGROUND SYNC (Every 60 Seconds)
@@ -106,27 +108,25 @@
                 const btn = document.getElementById(`btn-${id}`);
 
                 if (row) {
-                    const qty = parseInt(row.split(',')[4]);
+                    const qty = parseInt(row.split(',')[4]); // Column E
                     if (qty <= 0) {
                         display.innerText = "OUT OF STOCK";
                         display.style.color = "#ff4444";
                         btn.disabled = true;
-                        btn.style.opacity = "0.5";
                         btn.innerText = "SOLD OUT";
                     } else {
                         display.innerText = "✓ IN STOCK";
                         display.style.color = "#4caf50";
                         btn.disabled = false;
-                        btn.style.opacity = "1";
                         btn.innerText = "BUY NOW";
                     }
                 }
             });
-        } catch (e) { console.log("Stock refresh failed", e); }
+        } catch (e) { console.log("Stock check failed", e); }
     }
 
-    setInterval(checkStock, 60000); // 60s Heartbeat
-    checkStock(); // Initial Check
+    setInterval(checkStock, 60000); 
+    checkStock(); 
 
     function updatePrice(id) {
         const val = document.getElementById(`size-${id}`).value;
@@ -135,7 +135,7 @@
         tg.HapticFeedback.selectionChanged();
     }
 
-    // FINAL VALIDATION BEFORE ORDERING
+    // FINAL VALIDATION & ADMIN NOTIFICATION
     async function order(name, id) {
         tg.HapticFeedback.impactOccurred('medium');
         tg.MainButton.text = "VERIFYING STOCK...";
@@ -148,7 +148,7 @@
         const flavKey = f ? f.value : 'unfl';
         const sku = `${id}-${sizeTxt}-${flavKey}`;
 
-        // Re-check inventory before allowing confirmation
+        // Re-check inventory before allowing notification
         const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
         const csvText = await response.text();
         const rows = csvText.split('\n').slice(1);
@@ -156,7 +156,7 @@
         const qty = row ? parseInt(row.split(',')[4]) : 0;
 
         if (qty <= 0) {
-            tg.showAlert("Item sold out while browsing!");
+            tg.showAlert("This item just sold out!");
             tg.MainButton.hide();
             checkStock();
             return;
