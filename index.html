@@ -2,145 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Peakform Nutrition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Peakform Nutrition & Fitness</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-color: #121212;
-            --text-color: #ffffff;
-            --accent-color: #ff5722; /* Peakform Orange */
-            --card-bg: #1e1e1e;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
+        :root { --bg: #121212; --card: #1e1e1e; --accent: #ff5722; --text: #ffffff; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .header { text-align: center; margin-bottom: 30px; }
-        .logo-text { font-size: 32px; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; }
-        .sub-header { color: #999; font-size: 12px; margin-top: 5px; text-transform: uppercase; }
-
-        #product-list { width: 100%; max-width: 400px; }
-
-        .product-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 87, 34, 0.2);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .product-img {
-            width: 100%;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            background: white; /* Makes supplement bottles pop */
-        }
-
-        .product-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-
-        /* THE DROPDOWN STYLE */
-        select {
-            width: 100%;
-            padding: 12px;
-            margin: 15px 0;
-            border-radius: 10px;
-            background-color: #2a2a2a;
-            color: white;
-            border: 2px solid var(--accent-color);
-            font-size: 16px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .price {
-            font-size: 24px;
-            color: var(--accent-color);
-            font-weight: 800;
-            display: block;
-            margin-bottom: 15px;
-        }
-
-        .btn-buy {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 16px;
-            width: 100%;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 16px;
-            text-transform: uppercase;
-            cursor: pointer;
-        }
+        .logo { font-size: 32px; font-weight: 900; color: var(--accent); }
+        .product-card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 20px; width: 100%; max-width: 350px; border: 1px solid rgba(255,87,34,0.2); }
+        .product-img { width: 100%; border-radius: 12px; margin-bottom: 15px; background: white; }
+        select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #2a2a2a; color: white; border: 2px solid var(--accent); font-size: 16px; outline: none; -webkit-appearance: none; }
+        .price { font-size: 24px; color: var(--accent); font-weight: 800; display: block; margin: 10px 0; }
+        .btn-buy { background: var(--accent); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="logo-text">PEAKFORM</div>
-        <div class="sub-header">Official USN Distributor</div>
+        <div class="logo">PEAKFORM</div>
+        <div style="font-size: 12px; color: #888;">OFFICIAL USN DISTRIBUTOR</div>
     </div>
 
-    <div id="product-list">
-    <div class="product-card">
-        <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png" alt="Hyperbolic Mass">
-        <div class="product-title">USN Hyperbolic Mass</div>
+    <div id="product-list" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         
-        <select id="size-hyperbolic" onchange="updatePrice('hyperbolic')">
-            <option value="4000">1kg - 4,000 ETB</option>
-            <option value="9000" selected>3kg - 9,000 ETB</option>
-        </select>
-
-        <select id="flavor-hyperbolic">
-            <option value="Chocolate">Chocolate</option>
-            <option value="Vanilla">Vanilla</option>
-            <option value="Strawberry">Strawberry</option>
-        </select>
-
-        <span class="price" id="price-hyperbolic">9,000 ETB</span>
-        <button class="btn-buy" onclick="order('Hyperbolic Mass', 'hyperbolic')">Buy Now</button>
-    </div>
-
-    <div class="product-card">
-        <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/Bluelab_Whey.png" alt="Blue Lab Whey">
-        <div class="product-title">USN Blue Lab Whey</div>
-        
-        <select id="size-whey" onchange="updatePrice('whey')">
-            <option value="5100">454g - 5,100 ETB</option>
-            <option value="8100">908g - 8,100 ETB</option>
-            <option value="15800" selected>2kg - 15,800 ETB</option>
-        </select>
-
-        <select id="flavor-whey">
-            <option value="Whey Gh Chocolate">Chocolate</option>
-            <option value="Vanilla">Vanilla</option>
-            <option value="Caramel">Caramel</option>
-        </select>
-
-        <span class="price" id="price-whey">15,800 ETB</span>
-        <button class="btn-buy" onclick="order('Blue Lab Whey', 'whey')">Buy Now</button>
-    </div>
-</div>
         <div class="product-card">
-            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/Creatine.png" alt="Pure Creatine">
-            <div class="product-title">USN Pure Creatine</div>
-            <select id="size-creatine" onchange="updatePrice('creatine')">
+            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png">
+            <div style="font-size: 20px; font-weight: bold;">Hyperbolic Mass</div>
+            <select id="size-hyper" onchange="updatePrice('hyper')">
+                <option value="4000">1kg - 4,000 ETB</option>
+                <option value="9000" selected>3kg - 9,000 ETB</option>
+            </select>
+            <select id="flavor-hyper">
+                <option value="choc">Chocolate</option>
+                <option value="vani">Vanilla</option>
+                <option value="stra">Strawberry</option>
+            </select>
+            <span class="price" id="price-hyper">9,000 ETB</span>
+            <button class="btn-buy" onclick="order('Hyperbolic Mass', 'hyper')">Buy Now</button>
+        </div>
+
+        <div class="product-card">
+            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/Bluelab_whey.png">
+            <div style="font-size: 20px; font-weight: bold;">Bluelab Whey</div>
+            <select id="size-whey" onchange="updatePrice('whey')">
+                <option value="5100">454g - 5,100 ETB</option>
+                <option value="8100">908g - 8,100 ETB</option>
+                <option value="15800" selected>2kg - 15,800 ETB</option>
+            </select>
+            <select id="flavor-whey">
+                <option value="choc">Chocolate</option>
+                <option value="vani">Vanilla</option>
+                <option value="stra">Strawberry</option>
+            </select>
+            <span class="price" id="price-whey">15,800 ETB</span>
+            <button class="btn-buy" onclick="order('Bluelab Whey', 'whey')">Buy Now</button>
+        </div>
+
+        <div class="product-card">
+            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/Creatine.png">
+            <div style="font-size: 20px; font-weight: bold;">Pure Creatine</div>
+            <select id="size-creat" onchange="updatePrice('creat')">
                 <option value="2800" selected>200g - 2,800 ETB</option>
                 <option value="4600">410g - 4,600 ETB</option>
             </select>
-            <span class="price" id="price-creatine">2,800 ETB</span>
-            <button class="btn-buy" onclick="order('Pure Creatine', 'creatine')">Buy Now</button>
+            <span class="price" id="price-creat">2,800 ETB</span>
+            <button class="btn-buy" onclick="order('Pure Creatine', 'creat')">Buy Now</button>
         </div>
+
     </div>
 
     <script>
@@ -148,37 +77,38 @@
         tg.ready();
         tg.expand();
 
-        function updatePrice(productId) {
-            const select = document.getElementById(`size-${productId}`);
-            const priceDisplay = document.getElementById(`price-${productId}`);
-            const newPrice = Number(select.value).toLocaleString();
-            priceDisplay.innerText = `${newPrice} ETB`;
+        // REPLACE THIS WITH YOUR GOOGLE SCRIPT URL
+        const WAREHOUSE_URL = "PASTE_YOUR_URL_HERE";
+
+        function updatePrice(id) {
+            const val = document.getElementById(`size-${id}`).value;
+            document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
             tg.HapticFeedback.selectionChanged();
         }
 
-        function order(productName, elementId) {
-    tg.HapticFeedback.impactOccurred('medium');
-    
-    // Get Size and Price
-    const sizeSelect = document.getElementById(`size-${elementId}`);
-    const finalPrice = Number(sizeSelect.value).toLocaleString();
-    const sizeText = sizeSelect.options[sizeSelect.selectedIndex].text.split(' - ')[0];
-    
-    // Get Flavor (if it exists)
-    const flavorSelect = document.getElementById(`flavor-${elementId}`);
-    const flavorText = flavorSelect ? ` - ${flavorSelect.value} Flavor` : "";
+        function order(name, id) {
+            tg.HapticFeedback.impactOccurred('medium');
+            const s = document.getElementById(`size-${id}`);
+            const f = document.getElementById(`flavor-${id}`);
+            
+            const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0];
+            const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
+            const price = Number(s.value).toLocaleString();
 
-    const finalName = `${productName} (${sizeText})${flavorText}`;
+            // Generate SKU for Google Sheet (e.g., hyper-3kg-choc)
+            const sku = `${id}-${sizeTxt.toLowerCase()}-${f ? f.value : 'unfl'}`;
 
-    tg.MainButton.text = `CONFIRM ORDER: ${finalName}`;
-    tg.MainButton.show();
-    
-    tg.MainButton.onClick(function() {
-        const yourUsername = "Kawari"; 
-        const msg = encodeURIComponent(`Hello Peakform! I want to order ${finalName} for ${finalPrice} ETB.`);
-        tg.openTelegramLink(`https://t.me/${yourUsername}?text=${msg}`);
-    });
-}
+            tg.MainButton.text = `CONFIRM ${name} (${sizeTxt})`;
+            tg.MainButton.show();
+            
+            tg.MainButton.onClick(function() {
+                // Update Inventory
+                fetch(`${WAREHOUSE_URL}?id=${sku}`);
+                // Open Chat
+                const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt}) - ${flavTxt} for ${price} ETB.`);
+                tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
+            });
+        }
     </script>
 </body>
 </html>
