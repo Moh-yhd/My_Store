@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Peakform Nutrition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-   <style>
+    <style>
         :root {
             --bg-color: #121212;
             --text-color: #ffffff;
-            --accent-color: #ff5722;
+            --accent-color: #ff5722; /* Peakform Orange */
             --card-bg: #1e1e1e;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -24,31 +24,42 @@
             align-items: center;
         }
 
-        .header { margin-bottom: 30px; text-align: center; }
-        .logo-text { font-size: 32px; font-weight: 900; color: var(--accent-color); text-transform: uppercase; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo-text { font-size: 32px; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; }
+        .sub-header { color: #999; font-size: 12px; margin-top: 5px; text-transform: uppercase; }
+
+        #product-list { width: 100%; max-width: 400px; }
 
         .product-card {
             background: var(--card-bg);
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 20px;
-            width: 100%;
-            max-width: 350px;
             border: 1px solid rgba(255, 87, 34, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
+
+        .product-img {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            background: white; /* Makes supplement bottles pop */
+        }
+
+        .product-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
 
         /* THE DROPDOWN STYLE */
         select {
-            width: 100% !important;
-            padding: 12px !important;
-            margin: 15px 0 !important;
-            border-radius: 10px !important;
-            background-color: #2a2a2a !important;
-            color: white !important;
-            border: 2px solid var(--accent-color) !important;
-            font-size: 16px !important;
-            display: block !important;
-            -webkit-appearance: none; /* Fixes iOS styling */
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 10px;
+            background-color: #2a2a2a;
+            color: white;
+            border: 2px solid var(--accent-color);
+            font-size: 16px;
+            outline: none;
+            -webkit-appearance: none;
         }
 
         .price {
@@ -59,7 +70,7 @@
             margin-bottom: 15px;
         }
 
-        button {
+        .btn-buy {
             background-color: var(--accent-color);
             color: white;
             border: none;
@@ -67,76 +78,85 @@
             width: 100%;
             border-radius: 12px;
             font-weight: bold;
+            font-size: 16px;
             text-transform: uppercase;
+            cursor: pointer;
         }
-    </style> 
-    
+    </style>
 </head>
 <body>
 
     <div class="header">
         <div class="logo-text">PEAKFORM</div>
-        <div style="color: #999; font-size: 12px; margin-top: 5px;">OFFICIAL USN DISTRIBUTOR</div>
+        <div class="sub-header">Official USN Distributor</div>
     </div>
 
-    <div class="product-card">
-        <img src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png"
-    style="width:100%; border-radius:12px; margin-bottom:15px; background: white;"
-    alt="USN Hyperbolic Mass">
-             
-        <div style="font-size: 20px; font-weight: bold;">USN Hyperbolic Mass</div>
-        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">Premium All-In-One Gainer</div>
-        <span class="price">4,000 ETB</span>
-        <button onclick="addToCart('Hyperbolic Mass', 12000)">Buy Now</button>
+    <div id="product-list">
+        <div class="product-card">
+            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png" alt="Hyperbolic Mass">
+            <div class="product-title">USN Hyperbolic Mass</div>
+            <select id="size-hyperbolic" onchange="updatePrice('hyperbolic')">
+                <option value="4000">1kg - 4,000 ETB</option>
+                <option value="9000" selected>3kg - 9,000 ETB</option>
+            </select>
+            <span class="price" id="price-hyperbolic">9,000 ETB</span>
+            <button class="btn-buy" onclick="order('Hyperbolic Mass', 'hyperbolic')">Buy Now</button>
+        </div>
+
+        <div class="product-card">
+            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/blue_whey.png" alt="Blue Lab Whey">
+            <div class="product-title">USN Blue Lab Whey</div>
+            <select id="size-whey" onchange="updatePrice('whey')">
+                <option value="5100">454g - 5,100 ETB</option>
+                <option value="8100">908g - 8,100 ETB</option>
+                <option value="15800" selected>2kg - 15,800 ETB</option>
+            </select>
+            <span class="price" id="price-whey">15,800 ETB</span>
+            <button class="btn-buy" onclick="order('Blue Lab Whey', 'whey')">Buy Now</button>
+        </div>
+
+        <div class="product-card">
+            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/creatine.png" alt="Pure Creatine">
+            <div class="product-title">USN Pure Creatine</div>
+            <select id="size-creatine" onchange="updatePrice('creatine')">
+                <option value="2800" selected>200g - 2,800 ETB</option>
+                <option value="4600">410g - 4,600 ETB</option>
+            </select>
+            <span class="price" id="price-creatine">2,800 ETB</span>
+            <button class="btn-buy" onclick="order('Pure Creatine', 'creatine')">Buy Now</button>
+        </div>
     </div>
 
-    <div class="product-card">
-       <img src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/Bluelab_Whey.png"
-    style="width:100%; border-radius:12px; margin-bottom:15px; background: white;"
-    alt="USN Blue Lab Whey">
-             
-        <div style="font-size: 20px; font-weight: bold;">USN Blue Lab Whey</div>
-        <div style="color: #bbb; font-size: 14px; margin-top: 4px;">100% Whey Protein Isolate Blend</div>
-        <span class="price">15,800 ETB</span>
-        <button onclick="addToCart('Blue Lab Whey', 5800)">Buy Now</button>
-    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+        function updatePrice(productId) {
+            const select = document.getElementById(`size-${productId}`);
+            const priceDisplay = document.getElementById(`price-${productId}`);
+            const newPrice = Number(select.value).toLocaleString();
+            priceDisplay.innerText = `${newPrice} ETB`;
+            tg.HapticFeedback.selectionChanged();
+        }
 
-    function addToCart(item, price) {
-        tg.HapticFeedback.impactOccurred('medium');
-        
-        // Update the Big Blue Button at the bottom
-        tg.MainButton.text = `ORDER ${item} (${price} ETB)`;
-        tg.MainButton.show();
-        
-        tg.MainButton.onClick(function() {
-            // This shows a popup to the user to confirm their interest
-            tg.showPopup({
-                title: 'Confirm Order',
-                message: `Order ${item} for ${price} ETB? Our team will contact you for delivery in Addis.`,
-                buttons: [
-                    {id: 'order', type: 'default', text: 'Confirm Order'},
-                    {type: 'cancel'}
-                ]
-            }, function(buttonId) {
-                if (buttonId === 'order') {
-                    // This sends a "data" message back to your BotFather bot
-                    // You will receive a notification with the product name!
-                    tg.sendData(JSON.stringify({
-                        product: item,
-                        price: price,
-                        status: "Customer interested"
-                    }));
-                    
-                    tg.close(); // Closes the app after ordering
-                }
+        function order(productName, elementId) {
+            tg.HapticFeedback.impactOccurred('medium');
+            
+            const select = document.getElementById(`size-${elementId}`);
+            const finalPrice = Number(select.value).toLocaleString();
+            const sizeText = select.options[select.selectedIndex].text.split(' - ')[0];
+            const finalName = `${productName} (${sizeText})`;
+
+            tg.MainButton.text = `CONFIRM ORDER: ${finalName}`;
+            tg.MainButton.show();
+            
+            tg.MainButton.onClick(function() {
+                const yourUsername = "Moh_yhd"; 
+                const msg = encodeURIComponent(`Hello Peakform! I want to order ${finalName} for ${finalPrice} ETB.`);
+                tg.openTelegramLink(`https://t.me/${yourUsername}?text=${msg}`);
             });
-        });
-    }
-</script>
+        }
+    </script>
 </body>
 </html>
