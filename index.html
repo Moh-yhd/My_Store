@@ -73,42 +73,74 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
-        // REPLACE THIS WITH YOUR GOOGLE SCRIPT URL
-        const WAREHOUSE_URL = "PASTE_YOUR_URL_HERE";
+    // 1. YOUR GOOGLE SCRIPT URL (For buying)
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby0ZYxHChhkrdMcIwhpY4n2HGzlvIODA_xzlaI9rQE/dev";
+    // 2. YOUR PUBLISHED CSV LINK (For checking stock)
+    const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
-        function updatePrice(id) {
-            const val = document.getElementById(`size-${id}`).value;
-            document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
-            tg.HapticFeedback.selectionChanged();
-        }
+    async function checkStock() {
+        try {
+            const response = await fetch(STOCK_DATA_URL);
+            const csvText = await response.text();
+            const rows = csvText.split('\n').slice(1); // Skip header
 
-        function order(name, id) {
-            tg.HapticFeedback.impactOccurred('medium');
-            const s = document.getElementById(`size-${id}`);
-            const f = document.getElementById(`flavor-${id}`);
-            
-            const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0];
-            const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
-            const price = Number(s.value).toLocaleString();
+            rows.forEach(row => {
+                const cols = row.split(',');
+                const sku = cols[0].trim();
+                const qty = parseInt(cols[4]); // Assuming Quantity is Column E
 
-            // Generate SKU for Google Sheet (e.g., hyper-3kg-choc)
-            const sku = `${id}-${sizeTxt.toLowerCase()}-${f ? f.value : 'unfl'}`;
-
-            tg.MainButton.text = `CONFIRM ${name} (${sizeTxt})`;
-            tg.MainButton.show();
-            
-            tg.MainButton.onClick(function() {
-                // Update Inventory
-                fetch(`${WAREHOUSE_URL}?id=${sku}`);
-                // Open Chat
-                const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt}) - ${flavTxt} for ${price} ETB.`);
-                tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
+                // Look for an element to put the stock info in
+                // This requires a small HTML change (see below)
+                const display = document.getElementById(`stock-display-${sku}`);
+                if (display) {
+                    if (qty <= 0) {
+                        display.innerText = "OUT OF STOCK";
+                        display.style.color = "red";
+                    } else if (qty < 10) {
+                        display.innerText = `Only ${qty} left! Low Stock`;
+                        display.style.color = "#ff9800";
+                    } else {
+                        display.innerText = `${qty} in stock`;
+                        display.style.color = "#4caf50";
+                    }
+                }
             });
-        }
-    </script>
+        } catch (e) { console.log("Stock check failed", e); }
+    }
+
+    // Run stock check immediately
+    checkStock();
+
+    function updatePrice(id) {
+        const val = document.getElementById(`size-${id}`).value;
+        document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
+        tg.HapticFeedback.selectionChanged();
+    }
+
+    function order(name, id) {
+        tg.HapticFeedback.impactOccurred('medium');
+        const s = document.getElementById(`size-${id}`);
+        const f = document.getElementById(`flavor-${id}`);
+        
+        const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0];
+        const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
+        const price = Number(s.value).toLocaleString();
+
+        const sku = `${id}-${sizeTxt.toLowerCase()}-${f ? f.value : 'unfl'}`;
+
+        tg.MainButton.text = `CONFIRM ${name} (${sizeTxt})`;
+        tg.MainButton.show();
+        
+        tg.MainButton.onClick(function() {
+            fetch(`${WAREHOUSE_URL}?id=${sku}`);
+            const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt}) - ${flavTxt} for ${price} ETB.`);
+            tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
+        });
+    }
+</script>
 </body>
 </html>
