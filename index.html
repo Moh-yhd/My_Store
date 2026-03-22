@@ -14,6 +14,7 @@
         .product-img { width: 100%; border-radius: 12px; margin-bottom: 15px; background: white; }
         select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #2a2a2a; color: white; border: 2px solid var(--accent); font-size: 16px; outline: none; -webkit-appearance: none; }
         .price { font-size: 24px; color: var(--accent); font-weight: 800; display: block; margin: 10px 0; }
+        .stock-tag { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
         .btn-buy { background: var(--accent); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
     </style>
 </head>
@@ -33,13 +34,14 @@
                 <option value="4000">1kg - 4,000 ETB</option>
                 <option value="9000" selected>3kg - 9,000 ETB</option>
             </select>
-            <select id="flavor-hyper">
+            <select id="flavor-hyper" onchange="checkStock()">
                 <option value="choc">Chocolate</option>
                 <option value="vani">Vanilla</option>
                 <option value="stra">Strawberry</option>
             </select>
+            <div id="stock-display-hyper" class="stock-tag">Checking stock...</div>
             <span class="price" id="price-hyper">9,000 ETB</span>
-            <button class="btn-buy" onclick="order('Hyperbolic Mass', 'hyper')">Buy Now</button>
+            <button class="btn-buy" id="btn-hyper" onclick="order('Hyperbolic Mass', 'hyper')">Buy Now</button>
         </div>
 
         <div class="product-card">
@@ -50,13 +52,14 @@
                 <option value="8100">908g - 8,100 ETB</option>
                 <option value="15800" selected>2kg - 15,800 ETB</option>
             </select>
-            <select id="flavor-whey">
+            <select id="flavor-whey" onchange="checkStock()">
                 <option value="choc">Chocolate</option>
                 <option value="vani">Vanilla</option>
                 <option value="stra">Strawberry</option>
             </select>
+            <div id="stock-display-whey" class="stock-tag">Checking stock...</div>
             <span class="price" id="price-whey">15,800 ETB</span>
-            <button class="btn-buy" onclick="order('Blue Lab Whey', 'whey')">Buy Now</button>
+            <button class="btn-buy" id="btn-whey" onclick="order('Blue Lab Whey', 'whey')">Buy Now</button>
         </div>
 
         <div class="product-card">
@@ -66,8 +69,9 @@
                 <option value="2800" selected>200g - 2,800 ETB</option>
                 <option value="4600">410g - 4,600 ETB</option>
             </select>
+            <div id="stock-display-creat" class="stock-tag">Checking stock...</div>
             <span class="price" id="price-creat">2,800 ETB</span>
-            <button class="btn-buy" onclick="order('Pure Creatine', 'creat')">Buy Now</button>
+            <button class="btn-buy" id="btn-creat" onclick="order('Pure Creatine', 'creat')">Buy Now</button>
         </div>
 
     </div>
@@ -77,47 +81,53 @@
     tg.ready();
     tg.expand();
 
-    // 1. YOUR GOOGLE SCRIPT URL (For buying)
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby0ZYxHChhkrdMcIwhpY4n2HGzlvIODA_xzlaI9rQE/dev";
-    // 2. YOUR PUBLISHED CSV LINK (For checking stock)
+    // !!! IMPORTANT: MAKE SURE THIS ENDS IN /exec !!!
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbz8y9pva7X4Mi54y5r4RzzS7PJK4IoVwzEW1P1DVc3PABXfuhr5BlK8KJ0g98Gxk-Pr/exec";
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
     async function checkStock() {
         try {
-            const response = await fetch(STOCK_DATA_URL);
+            const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
             const csvText = await response.text();
-            const rows = csvText.split('\n').slice(1); // Skip header
+            const rows = csvText.split('\n').slice(1);
 
-            rows.forEach(row => {
-                const cols = row.split(',');
-                const sku = cols[0].trim();
-                const qty = parseInt(cols[4]); // Assuming Quantity is Column E
+            const products = ['hyper', 'whey', 'creat'];
+            
+            products.forEach(id => {
+                const s = document.getElementById(`size-${id}`);
+                const f = document.getElementById(`flavor-${id}`);
+                const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
+                const flavKey = f ? f.value : 'unfl';
+                const currentSKU = `${id}-${sizeTxt}-${flavKey}`;
 
-                // Look for an element to put the stock info in
-                // This requires a small HTML change (see below)
-                const display = document.getElementById(`stock-display-${sku}`);
-                if (display) {
+                const row = rows.find(r => r.split(',')[0].trim() === currentSKU);
+                const display = document.getElementById(`stock-display-${id}`);
+                const btn = document.getElementById(`btn-${id}`);
+
+                if (row) {
+                    const qty = parseInt(row.split(',')[4]);
                     if (qty <= 0) {
                         display.innerText = "OUT OF STOCK";
                         display.style.color = "red";
-                    } else if (qty < 10) {
-                        display.innerText = `Only ${qty} left! Low Stock`;
-                        display.style.color = "#ff9800";
+                        btn.disabled = true;
+                        btn.style.opacity = "0.5";
                     } else {
-                        display.innerText = `${qty} in stock`;
-                        display.style.color = "#4caf50";
+                        display.innerText = qty < 10 ? `Only ${qty} left! Low Stock` : `${qty} in stock`;
+                        display.style.color = qty < 10 ? "#ff9800" : "#4caf50";
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
                     }
                 }
             });
         } catch (e) { console.log("Stock check failed", e); }
     }
 
-    // Run stock check immediately
     checkStock();
 
     function updatePrice(id) {
         const val = document.getElementById(`size-${id}`).value;
         document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
+        checkStock(); // Update stock display when size changes
         tg.HapticFeedback.selectionChanged();
     }
 
@@ -125,11 +135,9 @@
         tg.HapticFeedback.impactOccurred('medium');
         const s = document.getElementById(`size-${id}`);
         const f = document.getElementById(`flavor-${id}`);
-        
         const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0];
         const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
         const price = Number(s.value).toLocaleString();
-
         const sku = `${id}-${sizeTxt.toLowerCase()}-${f ? f.value : 'unfl'}`;
 
         tg.MainButton.text = `CONFIRM ${name} (${sizeTxt})`;
@@ -139,6 +147,7 @@
             fetch(`${WAREHOUSE_URL}?id=${sku}`);
             const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt}) - ${flavTxt} for ${price} ETB.`);
             tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
+            tg.MainButton.hide();
         });
     }
 </script>
