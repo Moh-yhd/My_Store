@@ -166,12 +166,14 @@
         tg.MainButton.text = `CONFIRM ${name.toUpperCase()} (${sizeTxt})`;
         
         tg.MainButton.onClick(function() {
-            // Subtract from Google Sheet
-            fetch(`${WAREHOUSE_URL}?id=${sku}`);
-            // Send Order to Telegram
+            // Send notification to Admin (You) via Google Script
+            fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`); 
+            
             const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
             const price = Number(s.value).toLocaleString();
             const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt.toUpperCase()}) - ${flavTxt} for ${price} ETB.`);
+            
+            // Redirect customer to your chat
             tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
             tg.MainButton.hide();
         });
