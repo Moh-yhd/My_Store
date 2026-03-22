@@ -92,16 +92,45 @@
     </div>
 
     <div id="product-list">
-        <div class="product-card">
-            <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png" alt="Hyperbolic Mass">
-            <div class="product-title">USN Hyperbolic Mass</div>
-            <select id="size-hyperbolic" onchange="updatePrice('hyperbolic')">
-                <option value="4000">1kg - 4,000 ETB</option>
-                <option value="9000" selected>3kg - 9,000 ETB</option>
-            </select>
-            <span class="price" id="price-hyperbolic">9,000 ETB</span>
-            <button class="btn-buy" onclick="order('Hyperbolic Mass', 'hyperbolic')">Buy Now</button>
-        </div>
+    <div class="product-card">
+        <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png" alt="Hyperbolic Mass">
+        <div class="product-title">USN Hyperbolic Mass</div>
+        
+        <select id="size-hyperbolic" onchange="updatePrice('hyperbolic')">
+            <option value="4000">1kg - 4,000 ETB</option>
+            <option value="9000" selected>3kg - 9,000 ETB</option>
+        </select>
+
+        <select id="flavor-hyperbolic">
+            <option value="Chocolate">Chocolate</option>
+            <option value="Vanilla">Vanilla</option>
+            <option value="Strawberry">Strawberry</option>
+        </select>
+
+        <span class="price" id="price-hyperbolic">9,000 ETB</span>
+        <button class="btn-buy" onclick="order('Hyperbolic Mass', 'hyperbolic')">Buy Now</button>
+    </div>
+
+    <div class="product-card">
+        <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/blue_whey.png" alt="Blue Lab Whey">
+        <div class="product-title">USN Blue Lab Whey</div>
+        
+        <select id="size-whey" onchange="updatePrice('whey')">
+            <option value="5100">454g - 5,100 ETB</option>
+            <option value="8100">908g - 8,100 ETB</option>
+            <option value="15800" selected>2kg - 15,800 ETB</option>
+        </select>
+
+        <select id="flavor-whey">
+            <option value="Whey Gh Chocolate">Chocolate</option>
+            <option value="Vanilla">Vanilla</option>
+            <option value="Caramel">Caramel</option>
+        </select>
+
+        <span class="price" id="price-whey">15,800 ETB</span>
+        <button class="btn-buy" onclick="order('Blue Lab Whey', 'whey')">Buy Now</button>
+    </div>
+</div>
 
         <div class="product-card">
             <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/Bluelab_Whey.png" alt="Blue Lab Whey">
@@ -141,22 +170,28 @@
         }
 
         function order(productName, elementId) {
-            tg.HapticFeedback.impactOccurred('medium');
-            
-            const select = document.getElementById(`size-${elementId}`);
-            const finalPrice = Number(select.value).toLocaleString();
-            const sizeText = select.options[select.selectedIndex].text.split(' - ')[0];
-            const finalName = `${productName} (${sizeText})`;
+    tg.HapticFeedback.impactOccurred('medium');
+    
+    // Get Size and Price
+    const sizeSelect = document.getElementById(`size-${elementId}`);
+    const finalPrice = Number(sizeSelect.value).toLocaleString();
+    const sizeText = sizeSelect.options[sizeSelect.selectedIndex].text.split(' - ')[0];
+    
+    // Get Flavor (if it exists)
+    const flavorSelect = document.getElementById(`flavor-${elementId}`);
+    const flavorText = flavorSelect ? ` - ${flavorSelect.value} Flavor` : "";
 
-            tg.MainButton.text = `CONFIRM ORDER: ${finalName}`;
-            tg.MainButton.show();
-            
-            tg.MainButton.onClick(function() {
-                const yourUsername = "Moh_yhd"; 
-                const msg = encodeURIComponent(`Hello Peakform! I want to order ${finalName} for ${finalPrice} ETB.`);
-                tg.openTelegramLink(`https://t.me/${yourUsername}?text=${msg}`);
-            });
-        }
+    const finalName = `${productName} (${sizeText})${flavorText}`;
+
+    tg.MainButton.text = `CONFIRM ORDER: ${finalName}`;
+    tg.MainButton.show();
+    
+    tg.MainButton.onClick(function() {
+        const yourUsername = "Moh_yhd"; 
+        const msg = encodeURIComponent(`Hello Peakform! I want to order ${finalName} for ${finalPrice} ETB.`);
+        tg.openTelegramLink(`https://t.me/${yourUsername}?text=${msg}`);
+    });
+}
     </script>
 </body>
 </html>
