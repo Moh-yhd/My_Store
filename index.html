@@ -11,11 +11,12 @@
         .header { text-align: center; margin-bottom: 30px; }
         .logo { font-size: 32px; font-weight: 900; color: var(--accent); }
         .product-card { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 20px; width: 100%; max-width: 350px; border: 1px solid rgba(255,87,34,0.2); }
-        .product-img { width: 100%; border-radius: 12px; margin-bottom: 15px; background: white; }
-        select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #2a2a2a; color: white; border: 2px solid var(--accent); font-size: 16px; outline: none; -webkit-appearance: none; }
+        .product-img { width: 100%; border-radius: 12px; margin-bottom: 15px; background: white; height: 200px; object-fit: contain; }
+        select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #2a2a2a; color: white; border: 2px solid var(--accent); font-size: 16px; outline: none; }
         .price { font-size: 24px; color: var(--accent); font-weight: 800; display: block; margin: 10px 0; }
-        .stock-tag { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
-        .btn-buy { background: var(--accent); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+        .stock-tag { font-size: 13px; font-weight: bold; margin-bottom: 8px; display: block; }
+        .btn-buy { background: var(--accent); color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+        .btn-buy:disabled { background: #444; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -81,16 +82,16 @@
     tg.ready();
     tg.expand();
 
-    // !!! IMPORTANT: MAKE SURE THIS ENDS IN /exec !!!
+    // LINKS TO YOUR GOOGLE INFRASTRUCTURE
     const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbz8y9pva7X4Mi54y5r4RzzS7PJK4IoVwzEW1P1DVc3PABXfuhr5BlK8KJ0g98Gxk-Pr/exec";
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
+    // BACKGROUND SYNC (Every 60 Seconds)
     async function checkStock() {
         try {
             const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
             const csvText = await response.text();
             const rows = csvText.split('\n').slice(1);
-
             const products = ['hyper', 'whey', 'creat'];
             
             products.forEach(id => {
@@ -108,44 +109,69 @@
                     const qty = parseInt(row.split(',')[4]);
                     if (qty <= 0) {
                         display.innerText = "OUT OF STOCK";
-                        display.style.color = "red";
+                        display.style.color = "#ff4444";
                         btn.disabled = true;
                         btn.style.opacity = "0.5";
+                        btn.innerText = "SOLD OUT";
                     } else {
-                        display.innerText = qty < 10 ? `Only ${qty} left! Low Stock` : `${qty} in stock`;
-                        display.style.color = qty < 10 ? "#ff9800" : "#4caf50";
+                        display.innerText = "✓ IN STOCK";
+                        display.style.color = "#4caf50";
                         btn.disabled = false;
                         btn.style.opacity = "1";
+                        btn.innerText = "BUY NOW";
                     }
                 }
             });
-        } catch (e) { console.log("Stock check failed", e); }
+        } catch (e) { console.log("Stock refresh failed", e); }
     }
 
-    checkStock();
+    setInterval(checkStock, 60000); // 60s Heartbeat
+    checkStock(); // Initial Check
 
     function updatePrice(id) {
         const val = document.getElementById(`size-${id}`).value;
         document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
-        checkStock(); // Update stock display when size changes
+        checkStock(); 
         tg.HapticFeedback.selectionChanged();
     }
 
-    function order(name, id) {
+    // FINAL VALIDATION BEFORE ORDERING
+    async function order(name, id) {
         tg.HapticFeedback.impactOccurred('medium');
+        tg.MainButton.text = "VERIFYING STOCK...";
+        tg.MainButton.show();
+        tg.MainButton.disable();
+
         const s = document.getElementById(`size-${id}`);
         const f = document.getElementById(`flavor-${id}`);
-        const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0];
-        const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
-        const price = Number(s.value).toLocaleString();
-        const sku = `${id}-${sizeTxt.toLowerCase()}-${f ? f.value : 'unfl'}`;
+        const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
+        const flavKey = f ? f.value : 'unfl';
+        const sku = `${id}-${sizeTxt}-${flavKey}`;
 
-        tg.MainButton.text = `CONFIRM ${name} (${sizeTxt})`;
-        tg.MainButton.show();
+        // Re-check inventory before allowing confirmation
+        const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
+        const csvText = await response.text();
+        const rows = csvText.split('\n').slice(1);
+        const row = rows.find(r => r.split(',')[0].trim() === sku);
+        const qty = row ? parseInt(row.split(',')[4]) : 0;
+
+        if (qty <= 0) {
+            tg.showAlert("Item sold out while browsing!");
+            tg.MainButton.hide();
+            checkStock();
+            return;
+        }
+
+        tg.MainButton.enable();
+        tg.MainButton.text = `CONFIRM ${name.toUpperCase()} (${sizeTxt})`;
         
         tg.MainButton.onClick(function() {
+            // Subtract from Google Sheet
             fetch(`${WAREHOUSE_URL}?id=${sku}`);
-            const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt}) - ${flavTxt} for ${price} ETB.`);
+            // Send Order to Telegram
+            const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
+            const price = Number(s.value).toLocaleString();
+            const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt.toUpperCase()}) - ${flavTxt} for ${price} ETB.`);
             tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
             tg.MainButton.hide();
         });
