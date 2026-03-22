@@ -83,7 +83,7 @@
     tg.expand();
 
     // 1. UPDATE THIS URL FROM GOOGLE APPS SCRIPT DEPLOYMENT
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbwaXrLt7bcvrwBnr5e9uWme-uZ-SwiBTcEkipcB_mSaA0vaDxZG9OSq-lbBQQRHc3t5/exec";
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbyUU6CHyRBhr3eTcA8dbVehe_-62WT4ER19XXm2LfVjkSB4Pg0CxbpcRKwZ0hb5Lwj2/exec";
     
     // 2. CSV LINK FROM GOOGLE SHEETS
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
@@ -167,7 +167,7 @@
         
         tg.MainButton.onClick(function() {
             // Send notification to Admin (You) via Google Script
-            fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`); 
+           fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`, {mode: 'no-cors'});
             
             const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
             const price = Number(s.value).toLocaleString();
