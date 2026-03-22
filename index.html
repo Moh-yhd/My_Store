@@ -106,27 +106,42 @@
         <button onclick="addToCart('Blue Lab Whey', 5800)">Buy Now</button>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
-        function addToCart(item, price) {
-            tg.HapticFeedback.impactOccurred('medium');
-            tg.MainButton.text = `PROCEED TO CHECKOUT (${price} ETB)`;
-            tg.MainButton.show();
-            
-            tg.MainButton.onClick(function() {
-                tg.showPopup({
-                    title: 'Peakform Checkout',
-                    message: `Would you like to pay ${price} ETB for ${item} via Chapa?`,
-                    buttons: [
-                        {id: 'pay', type: 'default', text: 'Yes, Pay Now'},
-                        {type: 'cancel'}
-                    ]
-                });
+    function addToCart(item, price) {
+        tg.HapticFeedback.impactOccurred('medium');
+        
+        // Update the Big Blue Button at the bottom
+        tg.MainButton.text = `ORDER ${item} (${price} ETB)`;
+        tg.MainButton.show();
+        
+        tg.MainButton.onClick(function() {
+            // This shows a popup to the user to confirm their interest
+            tg.showPopup({
+                title: 'Confirm Order',
+                message: `Order ${item} for ${price} ETB? Our team will contact you for delivery in Addis.`,
+                buttons: [
+                    {id: 'order', type: 'default', text: 'Confirm Order'},
+                    {type: 'cancel'}
+                ]
+            }, function(buttonId) {
+                if (buttonId === 'order') {
+                    // This sends a "data" message back to your BotFather bot
+                    // You will receive a notification with the product name!
+                    tg.sendData(JSON.stringify({
+                        product: item,
+                        price: price,
+                        status: "Customer interested"
+                    }));
+                    
+                    tg.close(); // Closes the app after ordering
+                }
             });
-        }
-    </script>
+        });
+    }
+</script>
 </body>
 </html>
