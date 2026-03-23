@@ -80,48 +80,60 @@
     tg.ready();
     tg.expand();
 
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby8O1uLpBscP6j8mbDFQPjDjittZZwIaD2QMtJSs0B3oQ7b0GJ-lzc0XO84GsA-Nh-8/exec";
+    // 1. UPDATE THIS URL FROM YOUR LATEST GOOGLE DEPLOYMENT
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbxd0xf8TS0_mO5jTczxE8y7GvaNB-tMXvIYZkirXjRX8SO_OiIWwBqY0C7beRuLjNXe/exec";
+    
+    // 2. CSV LINK FROM GOOGLE SHEETS
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
-    let isProcessing = false; // "Debounce" lock
+    let isProcessing = false;
 
+    // --- FIX #1: RELIABLE STOCK CHECKING ---
     async function checkStock() {
         try {
             const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
             const csvText = await response.text();
-            const rows = csvText.split('\n').slice(1);
+            const rows = csvText.split('\n');
             const products = ['hyper', 'whey', 'creat'];
             
             products.forEach(id => {
                 const s = document.getElementById(`size-${id}`);
                 const f = document.getElementById(`flavor-${id}`);
+                
+                // Constructing the SKU exactly how it appears in your sheet
                 const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
                 const flavKey = f ? f.value : 'unfl';
-                const currentSKU = `${id}-${sizeTxt}-${flavKey}`;
+                const currentSKU = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
 
-                const row = rows.find(r => r.split(',')[0].trim() === currentSKU);
+                // Find the row where Column A matches our SKU
+                const row = rows.find(r => r.split(',')[0].trim().toLowerCase() === currentSKU);
                 const display = document.getElementById(`stock-display-${id}`);
                 const btn = document.getElementById(`btn-${id}`);
 
                 if (row) {
-                    const qty = parseInt(row.split(',')[4]); 
-                    if (qty <= 0) {
-                        display.innerText = "OUT OF STOCK";
+                    const columns = row.split(',');
+                    const qty = parseInt(columns[4]); // Column E is index 4
+
+                    if (isNaN(qty) || qty <= 0) {
+                        display.innerText = "❌ OUT OF STOCK";
                         display.style.color = "#ff4444";
                         btn.disabled = true;
                         btn.innerText = "SOLD OUT";
                     } else {
-                        display.innerText = "✓ IN STOCK";
+                        display.innerText = "✅ IN STOCK (" + qty + ")";
                         display.style.color = "#4caf50";
                         btn.disabled = false;
                         btn.innerText = "BUY NOW";
                     }
+                } else {
+                    display.innerText = "SKU NOT FOUND";
+                    btn.disabled = true;
                 }
             });
         } catch (e) { console.log("Stock check failed", e); }
     }
 
-    setInterval(checkStock, 60000); 
+    setInterval(checkStock, 30000); // Check every 30 seconds
     checkStock(); 
 
     function updatePrice(id) {
@@ -131,43 +143,30 @@
         tg.HapticFeedback.selectionChanged();
     }
 
-    async function order(name, id) {
-        if (isProcessing) return; // Ignore if already handling an order
+    // --- FIX #2: STOP DEDUCTING WRONG PRODUCT ---
+    function order(name, id) {
+        if (isProcessing) return;
 
         tg.HapticFeedback.impactOccurred('medium');
-        tg.MainButton.text = "VERIFYING STOCK...";
-        tg.MainButton.show();
-        tg.MainButton.disable();
-
+        
         const s = document.getElementById(`size-${id}`);
         const f = document.getElementById(`flavor-${id}`);
         const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
         const flavKey = f ? f.value : 'unfl';
-        const sku = `${id}-${sizeTxt}-${flavKey}`;
+        const sku = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
 
-        const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1);
-        const row = rows.find(r => r.split(',')[0].trim() === sku);
-        const qty = row ? parseInt(row.split(',')[4]) : 0;
-
-        if (qty <= 0) {
-            tg.showAlert("This item just sold out!");
-            tg.MainButton.hide();
-            checkStock();
-            return;
-        }
-
-        tg.MainButton.enable();
         tg.MainButton.text = `CONFIRM ${name.toUpperCase()} (${sizeTxt})`;
-        
+        tg.MainButton.show();
+
+        // CRITICAL: Remove any previous click listeners so it doesn't order the OLD product
+        tg.MainButton.offClick(); 
+
         tg.MainButton.onClick(function() {
-            if (isProcessing) return; 
-            isProcessing = true; // Lock the button
-            
+            if (isProcessing) return;
+            isProcessing = true;
             tg.MainButton.showProgress();
             
-            // Notify Admin (Warehouse Ping)
+            // Notify Warehouse
             fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`, {mode: 'no-cors'});
             
             const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
@@ -178,8 +177,9 @@
                 tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
                 tg.MainButton.hide();
                 tg.MainButton.hideProgress();
-                isProcessing = false; // Unlock for future orders
-            }, 600);
+                isProcessing = false;
+                checkStock(); // Refresh stock immediately after order
+            }, 800);
         });
     }
 </script>
