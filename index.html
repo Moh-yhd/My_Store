@@ -27,7 +27,6 @@
     </div>
 
     <div id="product-list" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        
         <div class="product-card">
             <img class="product-img" src="https://raw.githubusercontent.com/Moh-yhd/My_Store/main/6009544944973.png">
             <div style="font-size: 20px; font-weight: bold;">Hyperbolic Mass</div>
@@ -74,7 +73,6 @@
             <span class="price" id="price-creat">2,800 ETB</span>
             <button class="btn-buy" id="btn-creat" onclick="order('Pure Creatine', 'creat')">Buy Now</button>
         </div>
-
     </div>
 
     <script>
@@ -82,13 +80,11 @@
     tg.ready();
     tg.expand();
 
-    // 1. UPDATE THIS URL FROM GOOGLE APPS SCRIPT DEPLOYMENT
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbzaOoXflK5Z5QQDiMYARH75Z2g8YpPi76A53QmJVfw25k7jlBSGVrjy_DC0sm5ngOor/exec";
-    
-    // 2. CSV LINK FROM GOOGLE SHEETS
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby8O1uLpBscP6j8mbDFQPjDjittZZwIaD2QMtJSs0B3oQ7b0GJ-lzc0XO84GsA-Nh-8/exec";
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
-    // BACKGROUND SYNC (Every 60 Seconds)
+    let isProcessing = false; // "Debounce" lock
+
     async function checkStock() {
         try {
             const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
@@ -108,7 +104,7 @@
                 const btn = document.getElementById(`btn-${id}`);
 
                 if (row) {
-                    const qty = parseInt(row.split(',')[4]); // Column E
+                    const qty = parseInt(row.split(',')[4]); 
                     if (qty <= 0) {
                         display.innerText = "OUT OF STOCK";
                         display.style.color = "#ff4444";
@@ -135,8 +131,9 @@
         tg.HapticFeedback.selectionChanged();
     }
 
-    // FINAL VALIDATION & ADMIN NOTIFICATION
     async function order(name, id) {
+        if (isProcessing) return; // Ignore if already handling an order
+
         tg.HapticFeedback.impactOccurred('medium');
         tg.MainButton.text = "VERIFYING STOCK...";
         tg.MainButton.show();
@@ -148,7 +145,6 @@
         const flavKey = f ? f.value : 'unfl';
         const sku = `${id}-${sizeTxt}-${flavKey}`;
 
-        // Re-check inventory before allowing notification
         const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
         const csvText = await response.text();
         const rows = csvText.split('\n').slice(1);
@@ -166,16 +162,24 @@
         tg.MainButton.text = `CONFIRM ${name.toUpperCase()} (${sizeTxt})`;
         
         tg.MainButton.onClick(function() {
-            // Send notification to Admin (You) via Google Script
-           fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`, {mode: 'no-cors'});
+            if (isProcessing) return; 
+            isProcessing = true; // Lock the button
+            
+            tg.MainButton.showProgress();
+            
+            // Notify Admin (Warehouse Ping)
+            fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`, {mode: 'no-cors'});
             
             const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
             const price = Number(s.value).toLocaleString();
-            const msg = encodeURIComponent(`Hello Peakform! I want to order ${name} (${sizeTxt.toUpperCase()}) - ${flavTxt} for ${price} ETB.`);
+            const msg = encodeURIComponent(`Hello! I want to order ${name} (${sizeTxt.toUpperCase()}) - ${flavTxt} for ${price} ETB.`);
             
-            // Redirect customer to your chat
-            tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
-            tg.MainButton.hide();
+            setTimeout(() => {
+                tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
+                tg.MainButton.hide();
+                tg.MainButton.hideProgress();
+                isProcessing = false; // Unlock for future orders
+            }, 600);
         });
     }
 </script>
