@@ -75,20 +75,17 @@
         </div>
     </div>
 
-    <script>
+   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
-    // 1. UPDATE THIS URL FROM YOUR LATEST GOOGLE DEPLOYMENT
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbxd0xf8TS0_mO5jTczxE8y7GvaNB-tMXvIYZkirXjRX8SO_OiIWwBqY0C7beRuLjNXe/exec";
-    
-    // 2. CSV LINK FROM GOOGLE SHEETS
+    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbwOpGP4OEVyEcbJrrduQC52pzXAgIQF2d5OWIJl5Pd_V1zCFxoRFWKP4Jd9jR0_UXPA/exec";
     const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
     let isProcessing = false;
 
-    // --- FIX #1: RELIABLE STOCK CHECKING ---
+    // --- RELIABLE STOCK CHECKING ---
     async function checkStock() {
         try {
             const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
@@ -99,21 +96,16 @@
             products.forEach(id => {
                 const s = document.getElementById(`size-${id}`);
                 const f = document.getElementById(`flavor-${id}`);
-                
-                // Constructing the SKU exactly how it appears in your sheet
                 const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
                 const flavKey = f ? f.value : 'unfl';
                 const currentSKU = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
 
-                // Find the row where Column A matches our SKU
                 const row = rows.find(r => r.split(',')[0].trim().toLowerCase() === currentSKU);
                 const display = document.getElementById(`stock-display-${id}`);
                 const btn = document.getElementById(`btn-${id}`);
 
                 if (row) {
-                    const columns = row.split(',');
-                    const qty = parseInt(columns[4]); // Column E is index 4
-
+                    const qty = parseInt(row.split(',')[4]); 
                     if (isNaN(qty) || qty <= 0) {
                         display.innerText = "❌ OUT OF STOCK";
                         display.style.color = "#ff4444";
@@ -125,48 +117,43 @@
                         btn.disabled = false;
                         btn.innerText = "BUY NOW";
                     }
-                } else {
-                    display.innerText = "SKU NOT FOUND";
-                    btn.disabled = true;
                 }
             });
         } catch (e) { console.log("Stock check failed", e); }
     }
 
-    setInterval(checkStock, 30000); // Check every 30 seconds
+    setInterval(checkStock, 30000); 
     checkStock(); 
 
     function updatePrice(id) {
         const val = document.getElementById(`size-${id}`).value;
         document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
         checkStock(); 
-        tg.HapticFeedback.selectionChanged();
     }
 
-    // --- FIX #2: STOP DEDUCTING WRONG PRODUCT ---
+    // --- THE CRITICAL BUTTON FIX ---
     function order(name, id) {
-        if (isProcessing) return;
+        // 1. Reset the button completely so it forgets the previous product
+        tg.MainButton.offClick(); 
+        isProcessing = false; 
 
-        tg.HapticFeedback.impactOccurred('medium');
-        
         const s = document.getElementById(`size-${id}`);
         const f = document.getElementById(`flavor-${id}`);
         const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
         const flavKey = f ? f.value : 'unfl';
         const sku = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
 
-        tg.MainButton.text = `CONFIRM ${name.toUpperCase()} (${sizeTxt})`;
+        tg.MainButton.setText(`CONFIRM ${name.toUpperCase()} (${sizeTxt})`);
         tg.MainButton.show();
 
-        // CRITICAL: Remove any previous click listeners so it doesn't order the OLD product
-        tg.MainButton.offClick(); 
-
-        tg.MainButton.onClick(function() {
+        // 2. Define the NEW click action
+        const handleOrderClick = function() {
             if (isProcessing) return;
             isProcessing = true;
+            
             tg.MainButton.showProgress();
             
-            // Notify Warehouse
+            // Send to Google Script
             fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`, {mode: 'no-cors'});
             
             const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
@@ -177,10 +164,13 @@
                 tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
                 tg.MainButton.hide();
                 tg.MainButton.hideProgress();
+                // 3. Remove this specific listener after use
+                tg.MainButton.offClick(handleOrderClick);
                 isProcessing = false;
-                checkStock(); // Refresh stock immediately after order
             }, 800);
-        });
+        };
+
+        tg.MainButton.onClick(handleOrderClick);
     }
 </script>
 </body>
