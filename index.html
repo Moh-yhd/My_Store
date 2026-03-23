@@ -74,104 +74,107 @@
             <button class="btn-buy" id="btn-creat" onclick="order('Pure Creatine', 'creat')">Buy Now</button>
         </div>
     </div>
+    <script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-   <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
+const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby8n04x3iIsrd2DWS4j9wcU3Wwix3so52bMXD1lj1hnMU6OjNTDdibQKAcTwDoT9NXs/exec";
+const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
-    const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbwOpGP4OEVyEcbJrrduQC52pzXAgIQF2d5OWIJl5Pd_V1zCFxoRFWKP4Jd9jR0_UXPA/exec";
-    const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
+// --- GLOBAL STATE ---
+let currentOrder = null; 
+let isProcessing = false;
 
-    let isProcessing = false;
+// 1. ATTACH THE LISTENER ONLY ONCE
+tg.MainButton.onClick(function() {
+    if (isProcessing || !currentOrder) return;
+    
+    isProcessing = true;
+    tg.MainButton.showProgress();
 
-    // --- RELIABLE STOCK CHECKING ---
-    async function checkStock() {
-        try {
-            const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
-            const csvText = await response.text();
-            const rows = csvText.split('\n');
-            const products = ['hyper', 'whey', 'creat'];
-            
-            products.forEach(id => {
-                const s = document.getElementById(`size-${id}`);
-                const f = document.getElementById(`flavor-${id}`);
-                const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
-                const flavKey = f ? f.value : 'unfl';
-                const currentSKU = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
+    // Notify Google Script
+    fetch(`${WAREHOUSE_URL}?id=${currentOrder.sku}&action=notify`, { mode: 'no-cors' });
 
-                const row = rows.find(r => r.split(',')[0].trim().toLowerCase() === currentSKU);
-                const display = document.getElementById(`stock-display-${id}`);
-                const btn = document.getElementById(`btn-${id}`);
+    // Build the Telegram Message
+    const msg = encodeURIComponent(`Hello! I want to order ${currentOrder.name} (${currentOrder.size.toUpperCase()}) - ${currentOrder.flavor} for ${currentOrder.price} ETB.`);
+    
+    setTimeout(() => {
+        tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
+        tg.MainButton.hide();
+        tg.MainButton.hideProgress();
+        isProcessing = false;
+        currentOrder = null; // Clear the cart after redirect
+    }, 800);
+});
 
-                if (row) {
-                    const qty = parseInt(row.split(',')[4]); 
-                    if (isNaN(qty) || qty <= 0) {
-                        display.innerText = "❌ OUT OF STOCK";
-                        display.style.color = "#ff4444";
-                        btn.disabled = true;
-                        btn.innerText = "SOLD OUT";
-                    } else {
-                        display.innerText = "✅ IN STOCK (" + qty + ")";
-                        display.style.color = "#4caf50";
-                        btn.disabled = false;
-                        btn.innerText = "BUY NOW";
-                    }
+async function checkStock() {
+    try {
+        const response = await fetch(STOCK_DATA_URL + '&cache=' + new Date().getTime());
+        const csvText = await response.text();
+        const rows = csvText.split('\n');
+        const products = ['hyper', 'whey', 'creat'];
+        
+        products.forEach(id => {
+            const s = document.getElementById(`size-${id}`);
+            const f = document.getElementById(`flavor-${id}`);
+            if(!s) return; // Guard for products not in DOM
+
+            const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
+            const flavKey = f ? f.value : 'unfl';
+            const currentSKU = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
+
+            const row = rows.find(r => r.split(',')[0].trim().toLowerCase() === currentSKU);
+            const display = document.getElementById(`stock-display-${id}`);
+            const btn = document.getElementById(`btn-${id}`);
+
+            if (row) {
+                const qty = parseInt(row.split(',')[4]); 
+                if (isNaN(qty) || qty <= 0) {
+                    display.innerText = "❌ OUT OF STOCK";
+                    display.style.color = "#ff4444";
+                    btn.disabled = true;
+                    btn.innerText = "SOLD OUT";
+                } else {
+                    display.innerText = "✅ IN STOCK (" + qty + ")";
+                    display.style.color = "#4caf50";
+                    btn.disabled = false;
+                    btn.innerText = "BUY NOW";
                 }
-            });
-        } catch (e) { console.log("Stock check failed", e); }
-    }
+            }
+        });
+    } catch (e) { console.log("Stock check failed", e); }
+}
 
-    setInterval(checkStock, 30000); 
+setInterval(checkStock, 30000); 
+checkStock(); 
+
+function updatePrice(id) {
+    const val = document.getElementById(`size-${id}`).value;
+    document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
     checkStock(); 
+}
 
-    function updatePrice(id) {
-        const val = document.getElementById(`size-${id}`).value;
-        document.getElementById(`price-${id}`).innerText = `${Number(val).toLocaleString()} ETB`;
-        checkStock(); 
-    }
+// --- UPDATED ORDER FUNCTION ---
+function order(name, id) {
+    const s = document.getElementById(`size-${id}`);
+    const f = document.getElementById(`flavor-${id}`);
+    const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
+    const flavKey = f ? f.value : 'unfl';
+    const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
+    
+    // Update the Global State
+    currentOrder = {
+        name: name,
+        sku: `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase(),
+        size: sizeTxt,
+        flavor: flavTxt,
+        price: Number(s.value).toLocaleString()
+    };
 
-    // --- THE CRITICAL BUTTON FIX ---
-    function order(name, id) {
-        // 1. Reset the button completely so it forgets the previous product
-        tg.MainButton.offClick(); 
-        isProcessing = false; 
-
-        const s = document.getElementById(`size-${id}`);
-        const f = document.getElementById(`flavor-${id}`);
-        const sizeTxt = s.options[s.selectedIndex].text.split(' ')[0].toLowerCase();
-        const flavKey = f ? f.value : 'unfl';
-        const sku = `${id}-${sizeTxt}-${flavKey}`.trim().toLowerCase();
-
-        tg.MainButton.setText(`CONFIRM ${name.toUpperCase()} (${sizeTxt})`);
-        tg.MainButton.show();
-
-        // 2. Define the NEW click action
-        const handleOrderClick = function() {
-            if (isProcessing) return;
-            isProcessing = true;
-            
-            tg.MainButton.showProgress();
-            
-            // Send to Google Script
-            fetch(`${WAREHOUSE_URL}?id=${sku}&action=notify`, {mode: 'no-cors'});
-            
-            const flavTxt = f ? f.options[f.selectedIndex].text : "Unflavored";
-            const price = Number(s.value).toLocaleString();
-            const msg = encodeURIComponent(`Hello! I want to order ${name} (${sizeTxt.toUpperCase()}) - ${flavTxt} for ${price} ETB.`);
-            
-            setTimeout(() => {
-                tg.openTelegramLink(`https://t.me/kawari?text=${msg}`);
-                tg.MainButton.hide();
-                tg.MainButton.hideProgress();
-                // 3. Remove this specific listener after use
-                tg.MainButton.offClick(handleOrderClick);
-                isProcessing = false;
-            }, 800);
-        };
-
-        tg.MainButton.onClick(handleOrderClick);
-    }
-</script>
+    tg.MainButton.setText(`CONFIRM ${name.toUpperCase()} (${sizeTxt.toUpperCase()})`);
+    tg.MainButton.show();
+}
+<script>
 </body>
 </html>
