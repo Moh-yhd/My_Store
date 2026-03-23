@@ -75,11 +75,11 @@
         </div>
     </div>
     <script>
-const tg = window.Telegram.WebApp;
+        const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycby8n04x3iIsrd2DWS4j9wcU3Wwix3so52bMXD1lj1hnMU6OjNTDdibQKAcTwDoT9NXs/exec";
+const WAREHOUSE_URL = "https://script.google.com/macros/s/AKfycbwOpGP4OEVyEcbJrrduQC52pzXAgIQF2d5OWIJl5Pd_V1zCFxoRFWKP4Jd9jR0_UXPA/exec";
 const STOCK_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTd4tmcEv_GqiPOxe3Yph1bRfjhabG3BH9M16AvbzXdvpk8J0317VgbjMV43ZEKkg0FLusle1ddJ0q/pub?output=csv";
 
 // --- GLOBAL STATE ---
@@ -175,6 +175,7 @@ function order(name, id) {
     tg.MainButton.setText(`CONFIRM ${name.toUpperCase()} (${sizeTxt.toUpperCase()})`);
     tg.MainButton.show();
 }
-<script>
+    </script>
+ 
 </body>
 </html>
